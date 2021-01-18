@@ -1,8 +1,17 @@
 #include "vector.h"
 #include <stdlib.h>
 
+#define MIN_MALLOC 16
 #define TRUE 1
 #define FALSE 0
+
+/*
+    Retourne le maximum de a, b
+*/
+size_t max_size_t(size_t a, size_t b)
+{
+    return a < b ? b : a;
+}
 
 /*
     Ecrit un warning si p_vector est NULL et renvoie FALSE, TRUE sinon
@@ -22,7 +31,7 @@ int isNull(s_vector *p_vector)
 */
 int isOutOfBounds(s_vector *p_vector, size_t i)
 {
-    if (!(0 <= i && i < p_vector->length))
+    if (!(0 <= i && i < p_vector->size))
     {
         printf("\nWarning: out of bounds\n\n");
         return TRUE;
@@ -44,8 +53,9 @@ s_vector *vector_alloc(size_t n)
 
     s_vector *vector = (s_vector *)malloc(sizeof(s_vector));
 
-    vector->tab = (double *)malloc(n * sizeof(double));
-    vector->length = n;
+    vector->size = n;
+    vector->capacity = max_size_t(MIN_MALLOC, n); // Règle 1
+    vector->tab = (double *)malloc(vector->capacity * sizeof(double));
 
     for (int i = 0; i < n; i++)
         vector->tab[i] = 0.0;
@@ -98,21 +108,28 @@ void vector_insert(s_vector *p_vector, size_t i, double v)
     if (isNull(p_vector) == TRUE || (i != 0 && isOutOfBounds(p_vector, i - 1) == TRUE))
         return;
 
-    p_vector->length++;
+    double *tab;
 
-    double *newTab = (double *)malloc(p_vector->length * sizeof(double));
-
-    for (int index = 0; index < p_vector->length; index++)
+    if (p_vector->capacity <= p_vector->size)
     {
-        if (index < i)
-            newTab[index] = p_vector->tab[index];
-        else if (index == i)
-            newTab[index] = v;
-        else
-            newTab[index] = p_vector->tab[index - 1];
+        p_vector->capacity *= 2; // Règle 2
+        tab = (double *)malloc(p_vector->capacity * sizeof(double));
     }
+    else
+    {
+        tab = p_vector->tab;
+    }
+    p_vector->size++;
 
-    p_vector->tab = newTab;
+    for (int index = 0; index < i; index++)
+        tab[index] = p_vector->tab[index];
+
+    for (int index = p_vector->size - 1; i < index; index--)
+        tab[index] = p_vector->tab[index - 1];
+
+    tab[i] = v;
+
+    p_vector->tab = tab;
 }
 
 /*
@@ -123,20 +140,30 @@ void vector_erase(s_vector *p_vector, size_t i)
     if (isNull(p_vector) == TRUE || (i != 0 && isOutOfBounds(p_vector, i - 1) == TRUE))
         return;
 
-    p_vector->length--;
-    double *newTab = (double *)malloc(p_vector->length * sizeof(double));
+    double *tab;
 
-    for (int index = 0; index < p_vector->length + 1; index++)
+    if (MIN_MALLOC < p_vector->capacity && p_vector->size <= p_vector->capacity / 4) // Règle 1
+    {
+        p_vector->capacity /= 2; // Règle 3
+        tab = (double *)malloc(p_vector->capacity * sizeof(double));
+    }
+    else
+    {
+        tab = p_vector->tab;
+    }
+
+    for (int index = 0; index < p_vector->size; index++)
     {
         if (index == i)
             continue;
         else if (index < i)
-            newTab[index] = p_vector->tab[index];
+            tab[index] = p_vector->tab[index];
         else
-            newTab[index - 1] = p_vector->tab[index];
+            tab[index - 1] = p_vector->tab[index];
     }
 
-    p_vector->tab = newTab;
+    p_vector->tab = tab;
+    p_vector->size--;
 }
 
 /*
@@ -147,7 +174,7 @@ void vector_push_back(s_vector *p_vector, double v)
     if (isNull(p_vector) == TRUE)
         return;
 
-    vector_insert(p_vector, p_vector->length, v);
+    vector_insert(p_vector, p_vector->size, v);
 }
 
 /*
@@ -158,7 +185,7 @@ void vector_pop_back(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    vector_erase(p_vector, p_vector->length);
+    vector_erase(p_vector, p_vector->size);
 }
 
 /*
@@ -170,9 +197,10 @@ void vector_clear(s_vector *p_vector)
         return;
 
     free(p_vector->tab);
-    p_vector->tab = NULL;
 
-    p_vector->length = 0;
+    p_vector->size = 0;
+    p_vector->capacity = MIN_MALLOC; // Règle 1
+    p_vector->tab = (double *)malloc(p_vector->capacity * sizeof(double));
 }
 
 /*
@@ -183,7 +211,7 @@ int vector_empty(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return -1;
 
-    return p_vector->length == 0 ? TRUE : FALSE;
+    return p_vector->size == 0 ? TRUE : FALSE;
 }
 
 /*
@@ -194,7 +222,7 @@ size_t vector_size(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return -1;
 
-    return p_vector->length;
+    return p_vector->size;
 }
 
 /*
@@ -205,9 +233,9 @@ void vector_print(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    printf("s_vector(%ld) : ", p_vector->length);
+    printf("s_vector(%ld) : ", p_vector->size);
 
-    if (p_vector->length == 0)
+    if (p_vector->size == 0)
     {
         printf("[]\n");
         return;
@@ -215,7 +243,7 @@ void vector_print(s_vector *p_vector)
 
     printf("[%f", p_vector->tab[0]);
 
-    for (int i = 1; i < p_vector->length; i++)
+    for (int i = 1; i < p_vector->size; i++)
         printf(", %f", p_vector->tab[i]);
 
     printf("]\n");

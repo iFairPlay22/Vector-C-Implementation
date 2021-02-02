@@ -25,7 +25,7 @@ int main(int argc, char const *argv[])
     printf("s2 : ");
     my_struct_print(s2);
 
-    printf("s3 : ");
+    // printf("s3 : ");
     my_struct_print(s3);
 
     // CMP

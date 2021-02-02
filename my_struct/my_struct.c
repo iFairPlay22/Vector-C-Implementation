@@ -29,6 +29,7 @@ void my_struct_free(my_struct *myStruct)
 
     free(myStruct);
 }
+
 /*
     Initialise de manière aleatoire le contenu de votre structure.
 */
@@ -41,7 +42,7 @@ void my_struct_randoms_init(my_struct *myStruct)
 
     int randomSize = random_int(5, 10);
     myStruct->str = (char *)malloc(randomSize * sizeof(char));
-    random_init_string(myStruct->str, randomSize - 1);
+    random_init_string(myStruct->str, randomSize);
 }
 
 /*
@@ -58,10 +59,19 @@ void my_struct_copy(my_struct *dest, my_struct *src)
     dest->nb = src->nb;
 
     if (dest->str != NULL)
+    {
         free(dest->str);
+    }
 
-    dest->str = (char *)malloc(strlen(src->str) * sizeof(char));
-    strcpy(dest->str, src->str);
+    if (src->str == NULL)
+    {
+        dest->str = NULL;
+    }
+    else
+    {
+        dest->str = (char *)malloc((strlen(src->str) + 1) * sizeof(char));
+        strcpy(dest->str, src->str);
+    }
 }
 
 /*

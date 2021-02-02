@@ -59,7 +59,7 @@ void vector_set(s_vector *p_vector, size_t i, void *v);
 /*
     Retourne la donnée de l’index i.
 */
-void *vector_get(s_vector *p_vector, size_t i, void *p_data);
+void vector_get(s_vector *p_vector, size_t i, void *p_data);
 
 /*
     Insère une nouvelle donnée à l’index i de votre tableau dynamique.

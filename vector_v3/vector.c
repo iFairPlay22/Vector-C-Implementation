@@ -103,14 +103,12 @@ void vector_set(s_vector *p_vector, size_t i, void *v)
 /*
     Retourne la donnée de l’index i.
 */
-void *vector_get(s_vector *p_vector, size_t i, void *p_data)
+void vector_get(s_vector *p_vector, size_t i, void *p_data)
 {
     if (isNull(p_vector) == TRUE || isOutOfBounds(p_vector, i) == TRUE)
-        return NULL;
+        return;
 
     p_vector->d_copy(p_data, p_vector->tab[i]);
-
-    return p_vector->tab[i];
 }
 
 /*
@@ -128,12 +126,17 @@ void vector_insert(s_vector *p_vector, size_t i, void *v)
     {
         p_vector->capacity *= 2; // Règle 2
         tab = (void **)malloc(p_vector->capacity * sizeof(void *));
+
+        for (int i = p_vector->size; i < p_vector->capacity; i++)
+            p_vector->tab[i] = p_vector->d_alloc();
+
         mustFree = 1;
     }
     else
     {
         tab = p_vector->tab;
     }
+
     p_vector->size++;
 
     for (int index = 0; index < i; index++)
@@ -142,9 +145,10 @@ void vector_insert(s_vector *p_vector, size_t i, void *v)
     for (int index = p_vector->size - 1; i < index; index--)
         tab[index] = p_vector->tab[index - 1];
 
+    p_vector->tab[i] = p_vector->d_alloc();
     p_vector->d_copy(p_vector->tab[i], v);
 
-    if (mustFree == 1 && p_vector->tab != NULL)
+    if (mustFree == 1)
         free(p_vector->tab);
 
     p_vector->tab = tab;
@@ -172,6 +176,8 @@ void vector_erase(s_vector *p_vector, size_t i)
         tab = p_vector->tab;
     }
 
+    p_vector->d_free(p_vector->tab[i]);
+
     for (int index = 0; index < p_vector->size; index++)
     {
         if (index == i)
@@ -182,7 +188,7 @@ void vector_erase(s_vector *p_vector, size_t i)
             tab[index - 1] = p_vector->tab[index];
     }
 
-    if (mustFree == 1 && p_vector->tab != NULL)
+    if (mustFree == 1)
         free(p_vector->tab);
 
     p_vector->tab = tab;

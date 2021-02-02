@@ -9,7 +9,7 @@
 
 void *my_struct_alloc2()
 {
-    my_struct_alloc();
+    return my_struct_alloc();
 }
 
 void my_struct_free2(void *myStruct)
@@ -46,31 +46,50 @@ void test()
 {
     s_vector *vector = vector_alloc(10, my_struct_alloc2, my_struct_free2, my_struct_copy2);
 
-    my_struct *rs = randomStruct();
-    // vector_insert(vector, 0, rs);
+    my_struct *rs;
+
+    // [ 0 => #1, ... ]
+    rs = randomStruct();
+    vector_set(vector, 0, rs);
     my_struct_free(rs);
+    printVectorAt(vector, 0);
 
-    // printVectorAt(vector, 0);
+    // [ 0 => #2, ... ]
+    rs = randomStruct();
+    vector_set(vector, 0, rs);
+    my_struct_free(rs);
+    printVectorAt(vector, 0);
 
-    // vector_insert(vector, 0, randomStruct());
+    // [ ... ]
+    vector_erase(vector, 0);
 
-    // vector_insert(vector, 0, randomStruct());
+    // [ 0 => #3, ... ]
+    rs = randomStruct();
+    vector_insert(vector, 0, rs);
+    my_struct_free(rs);
+    printVectorAt(vector, 0);
 
-    // vector_erase(vector, 0);
+    // [ 0 => #3, 1 => #4, ... ]
+    rs = randomStruct();
+    vector_insert(vector, 1, rs);
+    my_struct_free(rs);
+    printVectorAt(vector, 1);
 
-    // vector_erase(vector, 1);
+    for (int i = 0; i < 20; i++)
+    {
+        rs = randomStruct();
+        vector_insert(vector, 1, rs);
+        my_struct_free(rs);
+        vector_erase(vector, 1);
+    }
 
-    // vector_clear(vector);
+    vector_clear(vector);
 
-    // vector_insert(vector, 0, randomStruct());
-
-    // vector_insert(vector, 1, randomStruct());
-
-    // for (int i = 0; i < 20; i++)
-    //     vector_insert(vector, 1, randomStruct());
-
-    // for (int i = 0; i < 20; i++)
-    //     vector_erase(vector, 1);
+    // [ 0 => #5, ... ]
+    rs = randomStruct();
+    vector_insert(vector, 0, rs);
+    my_struct_free(rs);
+    printVectorAt(vector, 0);
 
     vector_free(vector);
 }

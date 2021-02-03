@@ -71,8 +71,11 @@ void vector_free(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    free(p_vector->tab);
-    p_vector->tab = NULL;
+    if (p_vector->tab != NULL)
+    {
+        free(p_vector->tab);
+        p_vector->tab = NULL;
+    }
 
     free(p_vector);
     p_vector = NULL;
@@ -109,11 +112,13 @@ void vector_insert(s_vector *p_vector, size_t i, double v)
         return;
 
     double *tab;
+    int mustFree = 0;
 
     if (p_vector->capacity <= p_vector->size)
     {
         p_vector->capacity *= 2; // Règle 2
         tab = (double *)malloc(p_vector->capacity * sizeof(double));
+        mustFree = 1;
     }
     else
     {
@@ -129,6 +134,9 @@ void vector_insert(s_vector *p_vector, size_t i, double v)
 
     tab[i] = v;
 
+    if (mustFree == 1 && p_vector->tab != NULL)
+        free(p_vector->tab);
+
     p_vector->tab = tab;
 }
 
@@ -141,11 +149,13 @@ void vector_erase(s_vector *p_vector, size_t i)
         return;
 
     double *tab;
+    int mustFree = 0;
 
     if (MIN_MALLOC < p_vector->capacity && p_vector->size <= p_vector->capacity / 4) // Règle 1
     {
         p_vector->capacity /= 2; // Règle 3
         tab = (double *)malloc(p_vector->capacity * sizeof(double));
+        mustFree = 1;
     }
     else
     {
@@ -161,6 +171,9 @@ void vector_erase(s_vector *p_vector, size_t i)
         else
             tab[index - 1] = p_vector->tab[index];
     }
+
+    if (mustFree == 1 && p_vector->tab != NULL)
+        free(p_vector->tab);
 
     p_vector->tab = tab;
     p_vector->size--;
@@ -185,7 +198,7 @@ void vector_pop_back(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    vector_erase(p_vector, p_vector->size);
+    vector_erase(p_vector, p_vector->size - 1);
 }
 
 /*
@@ -196,7 +209,11 @@ void vector_clear(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    free(p_vector->tab);
+    if (p_vector->tab != NULL)
+    {
+        free(p_vector->tab);
+        p_vector->tab = NULL;
+    }
 
     p_vector->size = 0;
     p_vector->capacity = MIN_MALLOC; // Règle 1

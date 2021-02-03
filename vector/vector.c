@@ -61,8 +61,11 @@ void vector_free(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    free(p_vector->tab);
-    p_vector->tab = NULL;
+    if (p_vector->tab != NULL)
+    {
+        free(p_vector->tab);
+        p_vector->tab = NULL;
+    }
 
     free(p_vector);
     p_vector = NULL;
@@ -112,6 +115,9 @@ void vector_insert(s_vector *p_vector, size_t i, double v)
             newTab[index] = p_vector->tab[index - 1];
     }
 
+    if (p_vector->tab != NULL)
+        free(p_vector->tab);
+
     p_vector->tab = newTab;
 }
 
@@ -136,6 +142,9 @@ void vector_erase(s_vector *p_vector, size_t i)
             newTab[index - 1] = p_vector->tab[index];
     }
 
+    if (p_vector->tab != NULL)
+        free(p_vector->tab);
+
     p_vector->tab = newTab;
 }
 
@@ -158,7 +167,7 @@ void vector_pop_back(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    vector_erase(p_vector, p_vector->length);
+    vector_erase(p_vector, p_vector->length - 1);
 }
 
 /*
@@ -169,8 +178,11 @@ void vector_clear(s_vector *p_vector)
     if (isNull(p_vector) == TRUE)
         return;
 
-    free(p_vector->tab);
-    p_vector->tab = NULL;
+    if (p_vector->tab != NULL)
+    {
+        free(p_vector->tab);
+        p_vector->tab = NULL;
+    }
 
     p_vector->length = 0;
 }

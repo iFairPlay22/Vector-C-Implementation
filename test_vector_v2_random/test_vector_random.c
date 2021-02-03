@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "../random/random.h"
-#include "../vector/vector.h"
+#include "../vector_v2/vector.h"
 
 // Initialise le vecteur avec des valeurs aléatoires
 void init_random(s_vector *vector)
@@ -16,16 +17,16 @@ void init_random(s_vector *vector)
         );
     }
 }
+
 /*
     Répète n fois l’ajout puis la suppression d’un  ́elément à 
     des positions aléatoires.
 */
 void insert_erase_random(s_vector *vector, size_t n)
 {
-
     for (int i = 0; i < n; i++)
     {
-        int index = random_size_t(0, n);
+        size_t index = random_size_t(0, vector_size(vector));
 
         vector_insert(
             vector,
@@ -78,33 +79,42 @@ void insert_erase_tail(s_vector *vector, size_t n)
 */
 void read_write_random(s_vector *vector, size_t n)
 {
-
+    // Répète n fois...
     for (int i = 0; i < n; i++)
     {
-        int index = random_size_t(0, n);
+        size_t index = random_size_t(0, vector_size(vector));
 
+        // l’́ecriture...
         vector_set(
             vector,
             index,               // Index : [0, n -1]
             random_double(0, 10) // Valeur : [0, 9]
         );
 
+        // puis la lecture d’un elément à des positions aléatoires...
         vector_get(vector, index);
     }
 }
 
 /*
-    Répète n fois l’ ́ecriture de tous les ́eléments du vecteur  
+    Répète n fois l’écriture de tous les ́eléments du vecteur  
     puis la lecture de tous les ́eléments du vecteur toujours  
     avec un parcours de la tête vers la queue.
 */
 void read_write_sequential(s_vector *vector, size_t n)
 {
-    init_random(vector);
+    size_t size = vector_size(vector);
 
+    // Répète n fois...
     for (int i = 0; i < n; i++)
     {
-        vector_get(vector, i);
+        // l’écriture de tous les ́eléments du vecteur...
+        init_random(vector);
+
+        //puis la lecture de tous les ́eléments du vecteur toujours
+        //avec un parcours de la tête vers la queue...
+        for (int i = 0; i < size; i++)
+            vector_get(vector, i);
     }
 }
 
@@ -114,20 +124,27 @@ void read_write_sequential(s_vector *vector, size_t n)
 */
 void bubble_sort(s_vector *vector, size_t n)
 {
-    init_random(vector);
+    size_t size = vector_size(vector);
 
-    // Tri à bulles
-    for (int i = 0; i < n - 1; i++)
+    // On répète n fois
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n - i - 1; j++)
-        {
-            double t_av = vector_get(vector, j);
-            double t_ap = vector_get(vector, j + 1);
+        // l’écriture de tous les ́eléments du vecteur avec des valeurs aléatoires ...
+        init_random(vector);
 
-            if (t_ap < t_av)
+        // puis tri à bulles..
+        for (int i = 0; i < size - 1; i++)
+        {
+            for (int j = 0; j < size - i - 1; j++)
             {
-                vector_set(vector, j, t_ap);
-                vector_set(vector, j + 1, t_av);
+                double t_av = vector_get(vector, j);
+                double t_ap = vector_get(vector, j + 1);
+
+                if (t_ap < t_av)
+                {
+                    vector_set(vector, j, t_ap);
+                    vector_set(vector, j + 1, t_av);
+                }
             }
         }
     }
@@ -135,21 +152,17 @@ void bubble_sort(s_vector *vector, size_t n)
 
 int main(int argc, char const *argv[])
 {
-
     // PARAMETRES
-    if (argc != 3)
+    if (argc != 4)
     {
         printf("Nombre de paramètres invalide...\n");
         return 1;
     }
 
     size_t init_size, n;
-    sscanf(argv[1], "%ld", &init_size);
-    sscanf(argv[2], "%ld", &n);
-
-    // n = init_size < n ? init_size : n;
-
-    char *test_type = "bubble_sort";
+    char const *test_type = argv[1];
+    sscanf(argv[2], "%ld", &init_size);
+    sscanf(argv[3], "%ld", &n);
 
     // INIT TIME
     srand(time(NULL));
@@ -159,25 +172,25 @@ int main(int argc, char const *argv[])
     init_random(vector);
 
     // TESTS
-    if (test_type == "insert_erase_random")
+    if (strcmp(test_type, "insert_erase_random") == 0)
         insert_erase_random(vector, n);
 
-    if (test_type == "insert_erase_head")
+    if (strcmp(test_type, "insert_erase_head") == 0)
         insert_erase_head(vector, n);
 
-    if (test_type == "insert_erase_tail")
+    if (strcmp(test_type, "insert_erase_tail") == 0)
         insert_erase_tail(vector, n);
 
-    if (test_type == "read_write_random")
+    if (strcmp(test_type, "read_write_random") == 0)
         read_write_random(vector, n);
 
-    if (test_type == "read_write_sequential")
+    if (strcmp(test_type, "read_write_sequential") == 0)
         read_write_sequential(vector, n);
 
-    if (test_type == "bubble_sort")
+    if (strcmp(test_type, "bubble_sort") == 0)
         bubble_sort(vector, n);
 
-    vector_print(vector);
+    // vector_print(vector);
 
     // FREE
     vector_free(vector);

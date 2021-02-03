@@ -1,75 +1,110 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "vector.h"
 
-void test2()
+/*
+    Retourne 1 si vector->tab contient les mêmes valeurs que tab
+*/
+int checkVector(s_vector *vector, double tab, ...)
+{
+    va_list l;
+    va_start(l, tab);
+
+    size_t size = vector_size(vector);
+    double expectedV = tab;
+
+    for (int i = 0; i < size; i++)
+    {
+        double getV = vector_get(vector, i);
+
+        if (getV != expectedV)
+        {
+            printf("Warning : Invalid data for vector[%ld]\n", size);
+            printf("\t - Expected : %f for index %d\n", expectedV, i);
+            printf("\t - Get : %f\n", getV);
+            return 0;
+        }
+
+        expectedV = va_arg(l, double);
+    }
+
+    va_end(l);
+
+    return 1;
+}
+
+/*
+    Affiche un message d'erreur si un test a échoué
+*/
+void failed(int testNb)
+{
+    printf("Test %d failed...\n", testNb);
+    exit(testNb);
+}
+
+/*
+    Lancer le test1
+*/
+void test1()
 {
     s_vector *vector = vector_alloc(0);
 
-    vector_print(vector); // []
-
     vector_insert(vector, 0, 400);
-
-    vector_print(vector); // [400.000000]
+    if (checkVector(vector, 400.0, -1) == 0)
+        failed(1);
 
     vector_insert(vector, 0, 500);
-
-    vector_print(vector); // [500.000000, 400.000000]
+    if (checkVector(vector, 500.0, 400.0, -1) == 0)
+        failed(2);
 
     vector_insert(vector, 0, 600);
-
-    vector_print(vector); // [600.000000, 500.000000, 400.000000]
+    if (checkVector(vector, 600.0, 500.0, 400.0, -1) == 0)
+        failed(3);
 
     vector_erase(vector, 0);
-
-    vector_print(vector); // [500.000000, 400.000000]
+    if (checkVector(vector, 500.0, 400.0, -1) == 0)
+        failed(4);
 
     vector_erase(vector, 1);
+    if (checkVector(vector, 500.0, -1) == 0)
+        failed(5);
 
-    vector_print(vector); // [500.000000]
+    vector_clear(vector);
+    if (vector_size(vector) != 0)
+        failed(6);
+
+    vector_insert(vector, 0, 600);
+    if (checkVector(vector, 600.0, -1) == 0)
+        failed(7);
+
+    vector_insert(vector, 1, 700);
+    if (checkVector(vector, 600.0, 700.0, -1) == 0)
+        failed(8);
 
     vector_clear(vector);
 
-    vector_print(vector); // []
-
-    vector_insert(vector, 0, 600);
-
-    vector_print(vector); // [600.000000]
-
-    vector_insert(vector, 1, 700);
-
-    vector_print(vector); // [600.000000, 700.000000]
+    vector_insert(vector, 0, 100);
+    if (checkVector(vector, 100.0, -1) == 0)
+        failed(9);
 
     for (int i = 0; i < 20; i++)
-        vector_insert(vector, 1, 800);
-
-    vector_print(vector); // [600.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 800.000000, 700.000000]
+        vector_insert(vector, 1, 700);
 
     for (int i = 0; i < 20; i++)
         vector_erase(vector, 1);
 
-    vector_print(vector); // [600.000000, 700.000000]
+    if (checkVector(vector, 100.0, -1) == 0)
+        failed(10);
 
     vector_free(vector);
 }
 
-void initStderr()
+/*
+    Lancer le test 2
+*/
+void test2()
 {
-    fprintf(stderr, "\033[1;31m");
-}
-
-void resetStderr()
-{
-    fprintf(stderr, "\033[0m");
-}
-
-int main(int argc, char const *argv[])
-{
-    // test2();
-    // return 1;
-
-    initStderr();
-
     size_t length = 3;
 
     s_vector *vector = vector_alloc(length);
@@ -103,6 +138,7 @@ int main(int argc, char const *argv[])
         fprintf(stderr, "Erreur 3 : vector_insert / vector_size\n");
         exit(3);
     }
+
     vector_erase(vector, pos);
 
     if (vector_size(vector) != length)
@@ -158,9 +194,37 @@ int main(int argc, char const *argv[])
     }
 
     vector_free(vector);
+}
 
+/*
+    Ecrire sur le terminal les erreurs en rouge
+*/
+void initStderr()
+{
+    fprintf(stderr, "\033[1;31m");
+}
+
+/*
+    Ecrire sur le terminal les erreurs en noir
+*/
+void resetStderr()
+{
+    fprintf(stderr, "\033[0m");
+}
+
+int main(int argc, char const *argv[])
+{
+    // Erreurs en rouge
+    initStderr();
+
+    // Lancer les tests
+    test1();
+    test2();
+
+    // Erreurs en noir
     resetStderr();
 
+    // Traitement valide
     printf("Pas d'erreurs !\n");
 
     return 0;

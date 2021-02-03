@@ -5,30 +5,9 @@
 #include "../random/random.h"
 #include "../my_struct/my_struct.h"
 
-// "Cast" functions
-
-void *my_struct_alloc2()
-{
-    return my_struct_alloc();
-}
-
-void my_struct_free2(void *myStruct)
-{
-    my_struct_free((my_struct *)myStruct);
-}
-
-void my_struct_copy2(void *dest, void *src)
-{
-    my_struct_copy((my_struct *)dest, (my_struct *)src);
-}
-
-void my_struct_print2(void *myStruct)
-{
-    my_struct_print((my_struct *)myStruct);
-}
-
-// Test
-
+/*
+    Retourne une my_struct* initialisée de manière aléatoire
+*/
 my_struct *randomStruct()
 {
     my_struct *s1 = my_struct_alloc();
@@ -36,6 +15,10 @@ my_struct *randomStruct()
     return s1;
 }
 
+/*
+    Positionne une my_struct* initialisée de manière aléatoire
+    à la position i du vector passé en paramètre.
+*/
 void secureSet(s_vector *vector, size_t i)
 {
     my_struct *expected = randomStruct();
@@ -59,10 +42,14 @@ void secureSet(s_vector *vector, size_t i)
     }
 
     // Test quality
-    my_struct_free2(expected);
-    my_struct_free2(get);
+    my_struct_free(expected);
+    my_struct_free(get);
 }
 
+/*
+    Insère une my_struct* initialisée de manière aléatoire
+    à la position i du vector passé en paramètre.
+*/
 void secureInsert(s_vector *vector, size_t i)
 {
     my_struct *expected = randomStruct();
@@ -86,10 +73,13 @@ void secureInsert(s_vector *vector, size_t i)
     }
 
     // Free copy
-    my_struct_free2(expected);
-    my_struct_free2(get);
+    my_struct_free(expected);
+    my_struct_free(get);
 }
 
+/*
+    Supprime la position i du vector passé en paramètre.
+*/
 void secureErase(s_vector *vector, size_t i)
 {
     my_struct *expected = randomStruct();
@@ -108,14 +98,22 @@ void secureErase(s_vector *vector, size_t i)
     }
 
     // Free copy
-    my_struct_free2(expected);
-    my_struct_free2(get);
+    my_struct_free(expected);
+    my_struct_free(get);
 }
 
+/*
+    Teste l'implémentation des vecteurs génériques avec des my_struct*
+*/
 void test()
 {
     // Malloc
-    s_vector *vector = vector_alloc(10, my_struct_alloc2, my_struct_free2, my_struct_copy2, my_struct_print2);
+    s_vector *vector = vector_alloc(
+        10,
+        (t_data_alloc)my_struct_alloc,
+        (t_data_free)my_struct_free,
+        (t_data_cpy)my_struct_copy,
+        (t_data_print)my_struct_print);
 
     // [ 0 => #1, ... ]
     secureSet(vector, 0);
@@ -152,11 +150,17 @@ void test()
     vector_free(vector);
 }
 
+/*
+    Ecrire sur le terminal les erreurs en rouge
+*/
 void initStderr()
 {
     fprintf(stderr, "\033[1;31m");
 }
 
+/*
+    Ecrire sur le terminal les erreurs en noir
+*/
 void resetStderr()
 {
     fprintf(stderr, "\033[0m");
@@ -167,13 +171,16 @@ int main(int argc, char const *argv[])
     // INIT TIME
     srand(time(NULL));
 
+    // Erreurs en rouge
     initStderr();
 
     // Lancer des tests
     test();
 
+    // Message ok en noir
     resetStderr();
 
+    // Traitement valide
     printf("Pas d'erreurs !\n");
 
     return 0;

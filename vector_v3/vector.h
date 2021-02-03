@@ -25,6 +25,11 @@ typedef void (*t_data_free)(void *p_data);
 typedef void (*t_data_cpy)(void *p_data_dst, void *p_data_src);
 
 /*
+    Permet d'afficher une donnée
+*/
+typedef void (*t_data_print)(void *p_data);
+
+/*
     Structure s_vector
 */
 typedef struct
@@ -37,6 +42,7 @@ typedef struct
     t_data_alloc d_alloc;
     t_data_free d_free;
     t_data_cpy d_copy;
+    t_data_print d_print;
 
 } s_vector;
 
@@ -44,7 +50,7 @@ typedef struct
     Alloue et retourne votre structure. 
     Le tableau dynamique contient n void *.
 */
-s_vector *vector_alloc(size_t n, t_data_alloc d_alloc, t_data_free d_free, t_data_cpy d_copy);
+s_vector *vector_alloc(size_t n, t_data_alloc d_alloc, t_data_free d_free, t_data_cpy d_copy, t_data_print d_print);
 
 /*
     Libère votre structure.

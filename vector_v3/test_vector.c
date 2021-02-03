@@ -22,6 +22,11 @@ void my_struct_copy2(void *dest, void *src)
     my_struct_copy((my_struct *)dest, (my_struct *)src);
 }
 
+void my_struct_print2(void *myStruct)
+{
+    my_struct_print((my_struct *)myStruct);
+}
+
 // Test
 
 my_struct *randomStruct()
@@ -110,7 +115,7 @@ void secureErase(s_vector *vector, size_t i)
 void test()
 {
     // Malloc
-    s_vector *vector = vector_alloc(10, my_struct_alloc2, my_struct_free2, my_struct_copy2);
+    s_vector *vector = vector_alloc(10, my_struct_alloc2, my_struct_free2, my_struct_copy2, my_struct_print2);
 
     // [ 0 => #1, ... ]
     secureSet(vector, 0);
@@ -127,6 +132,8 @@ void test()
     // [ 0 => #3, 1 => #4, ... ]
     secureInsert(vector, 1);
 
+    // vector_print(vector);
+
     for (int i = 0; i < 20; i++)
     {
         secureInsert(vector, 1);
@@ -138,6 +145,8 @@ void test()
 
     // [ 0 => #5, ... ]
     secureInsert(vector, 0);
+
+    // vector_print(vector);
 
     // Free
     vector_free(vector);
@@ -160,6 +169,7 @@ int main(int argc, char const *argv[])
 
     initStderr();
 
+    // Lancer des tests
     test();
 
     resetStderr();

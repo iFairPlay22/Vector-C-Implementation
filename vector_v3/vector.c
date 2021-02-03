@@ -45,7 +45,7 @@ int isOutOfBounds(s_vector *p_vector, size_t i)
     Alloue et retourne votre structure. 
     Le tableau dynamique contient n void *.
 */
-s_vector *vector_alloc(size_t n, t_data_alloc d_alloc, t_data_free d_free, t_data_cpy d_copy)
+s_vector *vector_alloc(size_t n, t_data_alloc d_alloc, t_data_free d_free, t_data_cpy d_copy, t_data_print d_print)
 {
     if (n < 0)
     {
@@ -61,6 +61,7 @@ s_vector *vector_alloc(size_t n, t_data_alloc d_alloc, t_data_free d_free, t_dat
     vector->d_alloc = d_alloc;
     vector->d_free = d_free;
     vector->d_copy = d_copy;
+    vector->d_print = d_print;
 
     for (int i = 0; i < n; i++)
         vector->tab[i] = vector->d_alloc();
@@ -274,10 +275,13 @@ void vector_print(s_vector *p_vector)
         return;
     }
 
-    printf("[%p", p_vector->tab[0]);
+    printf("[\n");
 
-    for (int i = 1; i < p_vector->size; i++)
-        printf(", %p", p_vector->tab[i]);
+    for (int i = 0; i < p_vector->size; i++)
+    {
+        printf("\t");
+        p_vector->d_print(p_vector->tab[i]);
+    }
 
     printf("]\n");
 }

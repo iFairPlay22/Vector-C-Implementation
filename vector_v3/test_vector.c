@@ -31,66 +31,115 @@ my_struct *randomStruct()
     return s1;
 }
 
-void printVectorAt(s_vector *vector, size_t i)
+void secureSet(s_vector *vector, size_t i)
 {
-    my_struct *s1 = my_struct_alloc();
+    my_struct *expected = randomStruct();
+    my_struct *get = my_struct_alloc();
 
-    vector_get(vector, i, (void *)s1);
+    // Set
+    size_t beforeSize = vector_size(vector);
+    vector_set(vector, i, expected);
+    size_t afterSize = vector_size(vector);
+    vector_get(vector, i, get);
 
-    my_struct_print(s1);
+    // Test quality
+    if (!(beforeSize == afterSize && my_struct_cmp(expected, get) == 0))
+    {
+        printf("Error when set my_struct[%ld -> %ld]\n", beforeSize, afterSize);
+        printf("Expected : ");
+        my_struct_print(expected);
+        printf("Get : ");
+        my_struct_print(get);
+        exit(1); // NB : Ignorer les erreurs de free de valgrind
+    }
 
-    my_struct_free2(s1);
+    // Test quality
+    my_struct_free2(expected);
+    my_struct_free2(get);
+}
+
+void secureInsert(s_vector *vector, size_t i)
+{
+    my_struct *expected = randomStruct();
+    my_struct *get = my_struct_alloc();
+
+    // Insert
+    size_t beforeSize = vector_size(vector);
+    vector_insert(vector, i, expected);
+    size_t afterSize = vector_size(vector);
+    vector_get(vector, i, get);
+
+    // Test quality
+    if (!(beforeSize + 1 == afterSize && my_struct_cmp(expected, get) == 0))
+    {
+        printf("Error when insert my_struct[%ld -> %ld]\n", beforeSize, afterSize);
+        printf("Expected : ");
+        my_struct_print(expected);
+        printf("Get : ");
+        my_struct_print(get);
+        exit(2); // NB : Ignorer les erreurs de free de valgrind
+    }
+
+    // Free copy
+    my_struct_free2(expected);
+    my_struct_free2(get);
+}
+
+void secureErase(s_vector *vector, size_t i)
+{
+    my_struct *expected = randomStruct();
+    my_struct *get = my_struct_alloc();
+
+    // Erase
+    size_t beforeSize = vector_size(vector);
+    vector_erase(vector, 0);
+    size_t afterSize = vector_size(vector);
+
+    // Test quality
+    if (beforeSize != afterSize + 1)
+    {
+        printf("Error when erase my_struct[%ld -> %ld]\n", beforeSize, afterSize);
+        exit(3); // NB : Ignorer les erreurs de free de valgrind
+    }
+
+    // Free copy
+    my_struct_free2(expected);
+    my_struct_free2(get);
 }
 
 void test()
 {
+    // Malloc
     s_vector *vector = vector_alloc(10, my_struct_alloc2, my_struct_free2, my_struct_copy2);
 
-    my_struct *rs;
-
     // [ 0 => #1, ... ]
-    rs = randomStruct();
-    vector_set(vector, 0, rs);
-    my_struct_free(rs);
-    printVectorAt(vector, 0);
+    secureSet(vector, 0);
 
     // [ 0 => #2, ... ]
-    rs = randomStruct();
-    vector_set(vector, 0, rs);
-    my_struct_free(rs);
-    printVectorAt(vector, 0);
+    secureSet(vector, 0);
 
     // [ ... ]
-    vector_erase(vector, 0);
+    secureErase(vector, 0);
 
     // [ 0 => #3, ... ]
-    rs = randomStruct();
-    vector_insert(vector, 0, rs);
-    my_struct_free(rs);
-    printVectorAt(vector, 0);
+    secureInsert(vector, 0);
 
     // [ 0 => #3, 1 => #4, ... ]
-    rs = randomStruct();
-    vector_insert(vector, 1, rs);
-    my_struct_free(rs);
-    printVectorAt(vector, 1);
+    secureInsert(vector, 1);
 
     for (int i = 0; i < 20; i++)
     {
-        rs = randomStruct();
-        vector_insert(vector, 1, rs);
-        my_struct_free(rs);
-        vector_erase(vector, 1);
+        secureInsert(vector, 1);
+        secureErase(vector, 1);
     }
 
+    // [  ]
     vector_clear(vector);
 
     // [ 0 => #5, ... ]
-    rs = randomStruct();
-    vector_insert(vector, 0, rs);
-    my_struct_free(rs);
-    printVectorAt(vector, 0);
+    secureInsert(vector, 0);
 
+    // Free
     vector_free(vector);
 }
 
